@@ -3,30 +3,24 @@ import random
 import numpy as np
 import cv2
 from sklearn.ensemble import RandomForestClassifier
-import pandas as pd
-from PIL import Image
-from collections import namedtuple
 import xml.etree.ElementTree as ET
 from os import listdir
 from os.path import isfile, join
 import time
-from sklearn.metrics import confusion_matrix
-
-
 
 
 def bb_intersection_over_union(boxA, boxB):
-    xA = max(boxA[0], boxB[0])
-    yA = max(boxA[1], boxB[1])
-    xB = min(boxA[2], boxB[2])
-    yB = min(boxA[3], boxB[3])
+    x_a = max(boxA[0], boxB[0])
+    y_a = max(boxA[1], boxB[1])
+    x_b = min(boxA[2], boxB[2])
+    y_b = min(boxA[3], boxB[3])
 
-    interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
+    inter_area = max(0, x_b - x_a + 1) * max(0, y_b - y_a + 1)
 
-    boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
-    boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
+    boxa_area = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
+    boxb_area = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
 
-    iou = interArea / float(boxAArea + boxBArea - interArea)
+    iou = inter_area / float(boxa_area + boxb_area - inter_area)
 
     return iou
 
@@ -182,8 +176,6 @@ def set_data():
 
 
 def display(data):
-    n_classes = 3
-
     corr = {}
     incorr = {}
 
@@ -226,8 +218,6 @@ def main():
     print('Load data')
     build_data(all_data_train, allfiles_train, tree1)
     build_data(all_data_test, allfiles_test, tree2)
-
-
 
     print('learning BoVW')
     if os.path.isfile('voc.npy'):
