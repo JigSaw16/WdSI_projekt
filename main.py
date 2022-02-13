@@ -148,10 +148,10 @@ def create_rectangles(_all_data_train, _all_data_test, path):
 
         for sing_box in range(len((_all_data_train[curr_data].get("box_coords")))):
             cv2.rectangle(image_plus_box, _all_data_train[curr_data].get("box_coords")[sing_box][:2], _all_data_train[curr_data].get("box_coords")[sing_box][2:], (0, 255, 0), 2)
-            # cv2.rectangle(image_plus_box, _all_data_test[curr_data].get("box_coords")[sing_box][:2], _all_data_test[curr_data].get("box_coords")[sing_box][2:], (0, 0, 255), 2)
+            cv2.rectangle(image_plus_box, _all_data_test[curr_data].get("box_coords")[sing_box][:2], _all_data_test[curr_data].get("box_coords")[sing_box][2:], (0, 0, 255), 2)
 
-        # iou = bb_intersection_over_union(detection.gt, detection.pred)
-        # cv2.putText(image, "IoU: {:.4f}".format(iou), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+        # iou = bb_intersection_over_union(_all_data_train[curr_data].get("box_coords"), _all_data_test[curr_data].get("box_coords"))
+        # cv2.putText(image_plus_box, "IoU: {:.4f}".format(iou), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         # print("{}: {:.4f}".format(image_path, iou))
         img_with_boxes.append(image_plus_box)
     return img_with_boxes
@@ -238,6 +238,11 @@ def main():
     all_data_test = predict(rf, all_data_test)
 
     display(all_data_test)
+
+    img_w_b = create_rectangles(all_data_train, all_data_test, train_path)
+    # for curr_photo in range(len(img_w_b)):
+    #     cv2.imshow('image', img_w_b[curr_photo])
+    #     cv2.waitKey()
 
     input_data(all_data_test)
     end = time.time()
