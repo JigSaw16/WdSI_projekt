@@ -95,7 +95,7 @@ def build_data(_all_data_, allfiles, tree):
                     types.append(child4.text)
                     collect_data.update({'label': 1})
                 else:
-                    types.append("Other")
+                    types.append("other")
                     collect_data.update({'label': 0})
                 collect_data.update({"type": types})
         _all_data_.append(collect_data)
@@ -122,23 +122,36 @@ def predict(rf, data):
 
 
 def input_data(data_test):
-    print("Enter the command (classify/detect):")
-    user_input = input()
-    if user_input == "classify":
-        print("Enter image name:")
-        input_name = input()
+    det_or_class = input()
+    outpt = []
+    if det_or_class == "classify":
+        n_files = input()
+        for n_f in range(int(n_files)):
+            boxes = []
+            file_name = input()
+            n_obj = input()
+            for n in range(int(n_obj)):
+                bx = np.array(input())
+                boxes.append(bx)
+            for sample in data_test:
+                if file_name == sample["image_name"]:
+                    if int(n_obj) == sample["numb_of_obj"]:
+                        for x in range(int(n_obj)):
+                            xxx = str(sample["box_coords"][x][0]) + ' ' + str(sample["box_coords"][x][1]) + ' ' + \
+                                  str(sample["box_coords"][x][2]) + ' ' + str(sample["box_coords"][x][3])
+                            if boxes[x] == xxx:
+                                outpt.append(sample["type"][0])
+        for opt in outpt:
+            print(opt)
+
+    elif det_or_class == "detect":
         for sample in data_test:
-            if input_name == sample["image_name"]:
-                print(sample["type"])
-
-    elif user_input == "detect":
-        for x in range(len(data_test)):
-            print(data_test[x].get("image_name"), '\n',
-                  data_test[x].get("numb_of_obj"))
-            for cords in range(len(data_test[x].get("box_coords"))):
-                print(data_test[x].get("box_coords")[cords])
-            print('')
-
+            print(sample["image_name"])
+            print(sample["numb_of_obj"])
+            for x in range(int(sample["numb_of_obj"])):
+                xxx = str(sample["box_coords"][x][0]) + ' ' + str(sample["box_coords"][x][1]) + ' ' + \
+                      str(sample["box_coords"][x][2]) + ' ' + str(sample["box_coords"][x][3])
+                print(xxx)
 
 def create_rectangles(_all_data_train, _all_data_test, path):
     img_with_boxes = []
@@ -155,6 +168,7 @@ def create_rectangles(_all_data_train, _all_data_test, path):
         # print("{}: {:.4f}".format(image_path, iou))
         img_with_boxes.append(image_plus_box)
     return img_with_boxes
+
 
 def set_data():
     allfiles_train = [f1 for f1 in listdir("../train/annotations") if isfile(join("../train/annotations", f1))]
@@ -210,43 +224,33 @@ def display(data):
 
 def main():
 
-    start = time.time()
     all_data_train = []
     all_data_test = []
+
     allfiles_train, allfiles_test, tree1, tree2, train_path, test_path = set_data()
 
-    print('Load data')
+    # print('Load data')
     build_data(all_data_train, allfiles_train, tree1)
     build_data(all_data_test, allfiles_test, tree2)
 
-    print('learning BoVW')
-    if os.path.isfile('voc.npy'):
-        print('BoVW is already learned')
-    else:
+    if not os.path.isfile('voc.npy'):
         learn_bovw(all_data_train)
 
-    print('extracting train features')
+    # print('extracting train features')
     all_data_train = extract_features(all_data_train, train_path)
 
-    print('training')
+    # print('training')
     rf = train(all_data_train)
 
-    print('extracting test features')
+    # print('extracting test features')
     all_data_test = extract_features(all_data_test, test_path)
 
-    print('testing')
+    # print('testing')
     all_data_test = predict(rf, all_data_test)
 
-    display(all_data_test)
-
-    img_w_b = create_rectangles(all_data_train, all_data_test, train_path)
-    # for curr_photo in range(len(img_w_b)):
-    #     cv2.imshow('image', img_w_b[curr_photo])
-    #     cv2.waitKey()
-
     input_data(all_data_test)
-    end = time.time()
-    print(end - start)
+
+    # display(all_data_test)
 
     return
 
