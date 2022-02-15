@@ -5,7 +5,7 @@ to program przypisuje etykietę "other".
 Po uruchomieniu programu zaczyna on uczenie na podstawie danych z folderu "train" (funkcja learn_bovw()).
 Następnie obliczane są deskryptory dla każdego z obrazów (funkcja extract_features()).
 Po obliczeniu deskryptorów funkcja train() uczy model RFC (RandomForestClassifier).
-Teraz można przystąpić do obliczeniu deskryptorów oraz do predykcji (funkcja extract_features() oraz predict()) danych z folderu test na podstawei wyuczonego modelu.
+Teraz można przystąpić do obliczeniu deskryptorów oraz do predykcji (funkcja extract_features() oraz predict()) danych z folderu test na podstawie wyuczonego modelu.
 Po wymienionych operacjach program wyświetla ilość obrazów poprawnie dopasowanych oraz dopasowanych błędnie.
 Następnie program oczekuje na wpisanie komendy "classify" lub "detect" (funkcja input_data()).
 Wpisanie "classify", na podstawie wprowadzonej nazwy zdjęcia zwraca etykietę jaki znak występuje na podanych zdjęciu.
