@@ -8,6 +8,51 @@ from os import listdir
 from os.path import isfile, join
 import time
 
+# TODO Jakość kodu i raport (2.5/4)
+# TODO Raport malo przejrzysty.
+
+# TODO Skuteczność klasyfikacji 0.0 (/4)
+# TODO [0.00, 0.50) - 0.0
+# TODO [0.50, 0.55) - 0.5
+# TODO [0.55, 0.60) - 1.0
+# TODO [0.60, 0.65) - 1.5
+# TODO [0.65, 0.70) - 2.0
+# TODO [0.70, 0.75) - 2.5
+# TODO [0.75, 0.80) - 3.0
+# TODO [0.80, 0.85) - 3.5
+# TODO [0.85, 1.00) - 4.0
+
+# stderr:
+# Traceback (most recent call last):
+#   File "main.py", line 259, in <module>
+#     main()
+#   File "main.py", line 230, in main
+#     allfiles_train, allfiles_test, tree1, tree2, train_path, test_path = set_data()
+#   File "main.py", line 180, in set_data
+#     tree1.append(ET.parse(pth1))
+#   File "/usr/lib/python3.8/xml/etree/ElementTree.py", line 1202, in parse
+#     tree.parse(source, parser)
+#   File "/usr/lib/python3.8/xml/etree/ElementTree.py", line 584, in parse
+#     source = open(source, "rb")
+# FileNotFoundError: [Errno 2] No such file or directory: '../train/annotations/road0.xml'
+
+# TODO Skuteczność detekcji 0.0 (/2)
+
+# stderr:
+# Traceback (most recent call last):
+#   File "main.py", line 277, in <module>
+#     main()
+#   File "main.py", line 248, in main
+#     allfiles_train, allfiles_test, tree1, tree2, train_path, test_path = set_data()
+#   File "main.py", line 198, in set_data
+#     tree1.append(ET.parse(pth1))
+#   File "/usr/lib/python3.8/xml/etree/ElementTree.py", line 1202, in parse
+#     tree.parse(source, parser)
+#   File "/usr/lib/python3.8/xml/etree/ElementTree.py", line 584, in parse
+#     source = open(source, "rb")
+# FileNotFoundError: [Errno 2] No such file or directory: '../train/annotations/road0.xml'
+
+# TODO max(0, 0+0) = 0
 
 def bb_intersection_over_union(boxA, boxB):
     x_a = max(boxA[0], boxB[0])
@@ -41,6 +86,7 @@ def learn_bovw(data):
         if desc is not None:
             bow.add(desc)
 
+        # TODO Program nie powinien nic wypisywac.
         print('Progress: ', ctrr, '/', len(data))
         ctrr += 1
 
@@ -88,6 +134,7 @@ def build_data(_all_data_, allfiles, tree):
                 ymax = int(child3[3].text)
                 box = [xmin, ymin, xmax, ymax]
                 boxes.append(box)
+                # TODO A co w przypadku gdy bedzie wiecej niz jeden obiekt na zdjeciu?
                 collect_data.update({"box_coords": boxes})
 
             for child4 in child2.findall('name'):
@@ -133,8 +180,11 @@ def input_data(data_test):
             for n in range(int(n_obj)):
                 bx = np.array(input())
                 boxes.append(bx)
+            # TODO Ta petla jest niepotrzebna.
             for sample in data_test:
                 if file_name == sample["image_name"]:
+                    # TODO Podczas testowania nie mozna wykorzystywac oznaczen z pliku XML!!!
+                    # TODO Liczba wycinkow nie koniecznie bedzie rowna liczbie obiektow na zdjeciu.
                     if int(n_obj) == sample["numb_of_obj"]:
                         for x in range(int(n_obj)):
                             xxx = str(sample["box_coords"][x][0]) + ' ' + str(sample["box_coords"][x][1]) + ' ' + \
@@ -149,6 +199,7 @@ def input_data(data_test):
             print(sample["image_name"])
             print(sample["numb_of_obj"])
             for x in range(int(sample["numb_of_obj"])):
+                # TODO Podczas testowania nie mozna wykorzystywac oznaczen z pliku XML!!!
                 xxx = str(sample["box_coords"][x][0]) + ' ' + str(sample["box_coords"][x][1]) + ' ' + \
                       str(sample["box_coords"][x][2]) + ' ' + str(sample["box_coords"][x][3])
                 print(xxx)
@@ -175,6 +226,7 @@ def set_data():
     allfiles_test = [f2 for f2 in listdir("../test/annotations") if isfile(join("../test/annotations", f2))]
     tree1 = []
     tree2 = []
+    # TODO Obrazy nie koniecznie beda mialy kolejne numery.
     for file1 in range(len(allfiles_train)):
         pth1 = '../train/annotations/road' + str(file1) + '.xml'
         tree1.append(ET.parse(pth1))
