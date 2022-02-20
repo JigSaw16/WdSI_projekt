@@ -6,7 +6,6 @@ from sklearn.ensemble import RandomForestClassifier
 import xml.etree.ElementTree as ET
 from os import listdir
 from os.path import isfile, join
-from PIL import Image
 
 
 def learn_bovw(data, t_p):
@@ -245,14 +244,6 @@ def main():
     rf_obj = train_object_number(all_data_train)
     rf_box = train_box(all_data_train)
     input_data(all_test_images_data, test_path, rf, rf_obj, rf_box)
-
-    # # extracting test feature
-    # all_data_test = extract_features(test_data, test_path)
-    #
-    # # testing
-    # all_data_test = predict(rf, all_data_test)
-    # all_data_test = predict_object_number(rf_obj, all_data_test)
-    # all_data_test = predict_box(rf_box, all_data_test)
 
     return
 
