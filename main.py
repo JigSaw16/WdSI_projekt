@@ -1,5 +1,4 @@
 import os
-import random
 import numpy as np
 import cv2
 from sklearn.ensemble import RandomForestClassifier
@@ -9,13 +8,13 @@ from os.path import isfile, join
 
 
 def learn_bovw(data, t_p):
-    dict_size = 92
+    dict_size = 128
     bow = cv2.BOWKMeansTrainer(dict_size)
     sift = cv2.SIFT_create()
 
     for sample in data:
         img = cv2.imread(t_p + sample["image_name"])
-        sample_m = cv2.cvtColor(img, None)
+        sample_m = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         k_pts = sift.detect(sample_m, None)
         k_pts, desc = sift.compute(sample_m, k_pts)
@@ -43,23 +42,23 @@ def extract_features(data, path, cropped_box_):
                 x_min = sample["box_coords"][x][0]
                 x_max = sample["box_coords"][x][2]
                 cropped_image = img[y_min:y_max, x_min:x_max]
-                sample_m = cv2.cvtColor(cropped_image, None)
+                sample_m = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
                 k_pts = sift.detect(sample_m, None)
                 img_des = bow.compute(sample_m, k_pts)
                 if img_des is not None:
                     sample.update({'desc': img_des})
                 else:
-                    sample.update({'desc': np.zeros((1, 92))})
+                    sample.update({'desc': np.zeros((1, 128))})
 
     elif cropped_box_ == "detect":
         img = cv2.imread(path + data["image_name"])
-        sample_m = cv2.cvtColor(img, None)
+        sample_m = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         k_pts = sift.detect(sample_m, None)
         img_des = bow.compute(sample_m, k_pts)
         if img_des is not None:
             data.update({'desc': img_des})
         else:
-            data.update({'desc': np.zeros((1, 92))})
+            data.update({'desc': np.zeros((1, 128))})
     else:
         img = cv2.imread(path + data["image_name"])
         y_min = data["box_coords"][2]
@@ -67,13 +66,13 @@ def extract_features(data, path, cropped_box_):
         x_min = data["box_coords"][0]
         x_max = data["box_coords"][1]
         cropped_image = img[y_min:y_max, x_min:x_max]
-        sample_m = cv2.cvtColor(cropped_image, None)
+        sample_m = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
         k_pts = sift.detect(sample_m, None)
         img_des = bow.compute(sample_m, k_pts)
         if img_des is not None:
             data.update({'desc': img_des})
         else:
-            data.update({'desc': np.zeros((1, 92))})
+            data.update({'desc': np.zeros((1, 128))})
 
     return data
 
@@ -84,13 +83,17 @@ def build_data(_all_data_, allfiles, tree):
         root = tree[n_file].getroot()
         collect_data.update({"image_name": root[1].text})
 
-        ctr = 0
+        wid = int(root[2][0].text)
+        hei = int(root[2][1].text)
+        ctr = len(root.findall('object'))
         boxes = []
         types = []
-        for child in root.findall('object'):
-            ctr += 1
-        collect_data.update({"numb_of_obj": ctr})
+        xmin = 0
+        xmax = 0
+        ymin = 0
+        ymax = 0
 
+        collect_data.update({"numb_of_obj": ctr})
         for child2 in root.findall('object'):
             for child3 in child2.findall('bndbox'):
                 xmin = int(child3[0].text)
@@ -103,8 +106,14 @@ def build_data(_all_data_, allfiles, tree):
 
             for child4 in child2.findall('name'):
                 if child4.text == "speedlimit":
-                    types.append(child4.text)
-                    collect_data.update({'label': 1})
+                    diffx = xmax - xmin
+                    diffy = ymax - ymin
+                    if diffx >= 0.1*wid and diffy >= 0.1*hei:
+                        types.append(child4.text)
+                        collect_data.update({'label': 1})
+                    else:
+                        types.append("other")
+                        collect_data.update({'label': 0})
                 else:
                     types.append("other")
                     collect_data.update({'label': 0})
@@ -114,8 +123,8 @@ def build_data(_all_data_, allfiles, tree):
 
 
 def train(data):
-    rfc = RandomForestClassifier(92)
-    x_m = np.empty((1, 92))
+    rfc = RandomForestClassifier(128)
+    x_m = np.empty((1, 128))
     y_v = []
     for sample in data:
         y_v.append(sample['label'])
@@ -126,8 +135,8 @@ def train(data):
 
 
 def train_object_number(data):
-    rfc = RandomForestClassifier(92)
-    x_m = np.empty((1, 92))
+    rfc = RandomForestClassifier(128)
+    x_m = np.empty((1, 128))
     y_v = []
     for sample in data:
         y_v.append(sample['numb_of_obj'])
@@ -138,8 +147,8 @@ def train_object_number(data):
 
 
 def train_box(data):
-    rfc = RandomForestClassifier(92)
-    x_m = np.empty((1, 92))
+    rfc = RandomForestClassifier(128)
+    x_m = np.empty((1, 128))
     y_v = []
     for sample in data:
         for x in range(len(sample['box_coords'])):
@@ -189,6 +198,7 @@ def input_data(data, test_path, rf, rf_obj, rf_box):
                 outpt.append(predict(rf, samp))
         for opt in outpt:
             print(opt['type'])
+        return outpt
 
     elif det_or_class == "detect":
         for sample in data:
