@@ -6,6 +6,24 @@ import xml.etree.ElementTree as ET
 from os import listdir
 from os.path import isfile, join
 
+# TODO Jakość kodu i raport (4/4)
+
+
+# TODO Skuteczność klasyfikacji 0.929 (4/4)
+# TODO [0.00, 0.50) - 0.0
+# TODO [0.50, 0.55) - 0.5
+# TODO [0.55, 0.60) - 1.0
+# TODO [0.60, 0.65) - 1.5
+# TODO [0.65, 0.70) - 2.0
+# TODO [0.70, 0.75) - 2.5
+# TODO [0.75, 0.80) - 3.0
+# TODO [0.80, 0.85) - 3.5
+# TODO [0.85, 1.00) - 4.0
+
+
+# TODO Skuteczność detekcji mAP = 0.0 (0/2) (0/6)
+
+# TODO max(0, 4+0) = 4
 
 def learn_bovw(data, t_p):
     dict_size = 128
@@ -48,6 +66,7 @@ def extract_features(data, path, cropped_box_):
                 if img_des is not None:
                     sample.update({'desc': img_des})
                 else:
+                    # TODO Lepiej w ogole pominac takie przypadki.
                     sample.update({'desc': np.zeros((1, 128))})
 
     elif cropped_box_ == "detect":
@@ -124,6 +143,7 @@ def build_data(_all_data_, allfiles, tree):
 
 def train(data):
     rfc = RandomForestClassifier(128)
+    # TODO Mozna tez zrobic "np.empty((0, 128))".
     x_m = np.empty((1, 128))
     y_v = []
     for sample in data:
@@ -141,6 +161,7 @@ def train_object_number(data):
     for sample in data:
         y_v.append(sample['numb_of_obj'])
         x_m = np.vstack((x_m, sample['desc']))
+    # TODO To jest zadanie regresji, a nie klasyfikacji.
     rfc.fit(x_m[1:], y_v)
 
     return rfc
@@ -155,6 +176,7 @@ def train_box(data):
             y_v.append(sample['box_coords'][x])
             x_m = np.vstack((x_m, sample['desc']))
 
+    # TODO To jest zadanie regresji, a nie klasyfikacji.
     rfc.fit(x_m[1:], y_v)
 
     return rfc
@@ -251,6 +273,7 @@ def main():
 
     # training
     rf = train(all_data_train)
+    # TODO Pomysl dobry, ale w przypadku klasycznego ML nie zadziala tak dobrze jak w przypadku DNN.
     rf_obj = train_object_number(all_data_train)
     rf_box = train_box(all_data_train)
     input_data(all_test_images_data, test_path, rf, rf_obj, rf_box)
